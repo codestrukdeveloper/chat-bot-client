@@ -1,0 +1,59 @@
+{
+  "name": "chatbot",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@craco/craco": "^7.1.0",
+    "@testing-library/jest-dom": "^6.4.6",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@tippyjs/react": "^4.2.6",
+    "apexcharts": "^3.50.0",
+    "draft-js": "^0.11.7",
+    "emoji-picker-react": "^4.11.1",
+    "google-map-react": "^2.2.1",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-apexcharts": "^1.4.1",
+    "react-calendar": "^5.0.0",
+    "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5",
+    "react-icons": "^5.2.1",
+    "react-popper": "^2.3.0",
+    "react-router-dom": "^6.25.1",
+    "react-scripts": "5.0.1",
+    "react-table": "^7.8.0",
+    "styled-components": "^6.1.12",
+    "web-vitals": "^4.2.2"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "react-scripts eject",
+    "prepare": "husky"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "husky": "^9.1.0"
+  }
+}

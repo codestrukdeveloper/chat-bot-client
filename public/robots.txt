@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /auth/signup
+Disallow: /auth/signin
+Disallow: /components-draggable
+Disallow: /create-ticket
+Disallow: /dashboard/notes
+
+# Sitemap: your_url.com

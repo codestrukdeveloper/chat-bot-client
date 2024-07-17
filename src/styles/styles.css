@@ -1,0 +1,81 @@
+html,
+body,
+div {
+  scroll-behavior: smooth;
+}
+
+abbr[title] {
+  border-bottom: none !important;
+  cursor: inherit !important;
+  text-decoration: none !important;
+}
+
+a {
+  text-decoration: none;
+}
+
+.react-calendar__navigation {
+  margin-bottom: 14px;
+  align-items: center;
+  display: flex;
+}
+
+button.react-calendar__navigation__label {
+  text-align: left;
+}
+
+.react-calendar__navigation__label {
+  font-size: 18px;
+  font-family: "Poppins";
+  font-weight: 500;
+  order: 1;
+}
+
+.react-calendar__month-view__weekdays {
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #5f5f5f;
+  font-weight: 400;
+}
+
+button.react-calendar__navigation__arrow.react-calendar__navigation__prev-button {
+  order: 2;
+}
+
+button.react-calendar__navigation__arrow.react-calendar__navigation__next-button {
+  order: 3;
+}
+
+@media screen and (max-width: 768px) {
+  .react-calendar__navigation {
+    margin-bottom: 24px;
+  }
+  .react-calendar__month-view__weekdays {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .react-calendar__navigation__label {
+    font-size: 20px;
+  }
+}
+
+/* aside.emoji-picker-react {
+  position: absolute;
+  top: -330px;
+} */
+
+.my-chart-tooltip {
+  border-radius: 6px;
+  background: #7b40f2;
+  box-shadow: 0px 13px 38px rgba(0, 0, 0, 0.05);
+  color: white;
+  padding: 4px 20px;
+  line-height: 18px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.color-primary {
+  color: #7b40f2;
+}
