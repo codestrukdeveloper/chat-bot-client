@@ -1,3 +1,4 @@
+import useAuthStore from "@/hooks/useAuthStore";
 import { Button } from "@/components/Button/Button";
 import Checkbox from "@/components/Form/Checkbox";
 import Label from "@/components/Form/Label";
@@ -5,8 +6,9 @@ import { InputGroup, Input, InputWrapper } from "@/components/Form/v2/Input";
 import Text from "@/components/Typography/Text";
 import { Helmet } from "react-helmet-async";
 import { FaEnvelope, FaGlobe, FaLock, FaUser } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link,useNavigate  } from "react-router-dom";
 import styled from "styled-components";
+import { useState } from "react"; // Import useState for managing local state
 
 const Container = styled.div`
   max-width: 100%;
@@ -100,6 +102,7 @@ const HeroWrapper = styled.div`
 
 const StyledInputGroup = styled(InputGroup)`
   margin-top: 10px;
+  margin-bottom: 20px;
 `;
 
 const StyledCheckbox = styled(Checkbox)`
@@ -141,8 +144,108 @@ const AlreadyHaveAccount = styled(Text)`
   letter-spacing: -0.03em;
   text-align: center;
 `;
-
+const FlashMessage = styled.div`
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 4px;
+`;
 const Signup = () => {
+  const navigate = useNavigate();
+
+  const {
+    name,
+    email,
+    website,
+    password,
+    isLoading,
+    error,
+    setName,
+    setEmail,
+    setWebsite,
+    setPassword,
+    register,
+  } = useAuthStore();
+
+  const [formErrors, setFormErrors] = useState({
+    name: '',
+    email: '',
+    website: '',
+    password: '',
+    terms: '',
+  });
+
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [flashMessage, setFlashMessage] = useState('');
+
+  const validateForm = () => {
+    let valid = true;
+    const errors = {
+      name: '',
+      email: '',
+      website: '',
+      password: '',
+      terms: '',
+    };
+
+    if (!name) {
+      errors.name = 'Name is required';
+      valid = false;
+    }
+    if (!email) {
+      errors.email = 'Email is required';
+      valid = false;
+    }
+    if (!password) {
+      errors.password = 'Password is required';
+      valid = false;
+    }
+    if (!termsAccepted) {
+      errors.terms = 'You must accept the terms and conditions';
+      valid = false;
+    }
+
+    setFormErrors(errors);
+    return valid;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFlashMessage(''); // Set flash message on error
+     if (validateForm()) {
+      try {
+        const response = await register();
+        if(response?.status === 201){
+          navigate(`/auth/verify?email=${response?.email}`);
+        }
+      } catch (error) {
+        console.log(error)
+        if(error?.response?.status == 409){
+          setFlashMessage('User Already Registered!'); // Set flash message on error
+        }else{
+        setFlashMessage('Something went wrong during registration. Please try again.'); // Set flash message on error
+
+        }
+      }
+    }
+  };
+
+  const handleInputChange = (setter) => (e) => {
+    setter(e.target.value);
+    setFormErrors((prev) => ({ ...prev, [e.target.name]: '' })); // Clear error on change
+    setFlashMessage(''); // Set flash message on error
+
+  };
+
+const handleCheckboxChange = (e) => {
+    setTermsAccepted(e.target.checked);
+    setFormErrors((prev) => ({ ...prev, terms: '' }));
+    setFlashMessage(''); // Set flash message on error
+
+  };
+
   return (
     <>
       <Helmet>
@@ -153,57 +256,95 @@ const Signup = () => {
           <AuthNav>
             <img src="/images/infinity-logo.png" alt="logo" />
           </AuthNav>
+          {flashMessage && <FlashMessage>{flashMessage}</FlashMessage>} {/* Display flash message */}
           <AuthTitle>Get Started With InfinityBot</AuthTitle>
-          <SignupForm>
+          <SignupForm onSubmit={handleSubmit}>
             <InputWrapper>
               <Label className="normal-text">Name</Label>
               <StyledInputGroup>
                 <FaUser />
-                <Input placeholder="Your Name" />
+                <Input 
+                  placeholder="Your Name" 
+                  value={name} 
+                  name="name"
+                  onChange={handleInputChange(setName)} 
+                />
               </StyledInputGroup>
+              {formErrors.name && <div style={{ color: 'red', paddingBottom: '10px'  }}>{formErrors.name}</div>}
             </InputWrapper>
             <InputWrapper>
               <Label className="normal-text">Email</Label>
               <StyledInputGroup>
                 <FaEnvelope />
-                <Input placeholder="Your Email" type="email" />
+                <Input 
+                  placeholder="Your Email" 
+                  type="email" 
+                  value={email} 
+                  name="email"
+                  onChange={handleInputChange(setEmail)} 
+                />
               </StyledInputGroup>
+              {formErrors.email && <div style={{ color: 'red', paddingBottom: '10px'  }}>{formErrors.email}</div>}
             </InputWrapper>
             <InputWrapper>
               <Label className="normal-text">Website</Label>
               <StyledInputGroup>
                 <FaGlobe />
-                <Input placeholder="Your Website" type="url" />
+                <Input 
+                  placeholder="Your Website" 
+                  type="url" 
+                  value={website} 
+                  name="website"
+                  onChange={handleInputChange(setWebsite)} 
+                />
               </StyledInputGroup>
+              {formErrors.website && <div style={{ color: 'red', paddingBottom: '10px'  }}>{formErrors.website}</div>}
             </InputWrapper>
             <InputWrapper>
               <Label className="normal-text">Password</Label>
               <StyledInputGroup>
                 <FaLock />
-                <Input placeholder="Create Password" type="password" />
+                <Input 
+                  placeholder="Create Password" 
+                  type="password" 
+                  value={password} 
+                  name="password"
+                  onChange={handleInputChange(setPassword)} 
+                />
               </StyledInputGroup>
+              {formErrors.password && <div style={{ color: 'red', paddingBottom: '10px'  }}>{formErrors.password}</div>}
             </InputWrapper>
             <StyledCheckbox>
-              I Agree to{" "}
-              <a
-                href="/term-of-service"
-                target="_blank"
-                className="color-primary"
-              >
-                Term of service{" "}
-              </a>
-              and{" "}
-              <a
-                href="/privacy-policy"
-                target="_blank"
-                className="color-primary"
-              >
-                Privacy Policy
-              </a>
+              <input 
+                type="checkbox" 
+                checked={termsAccepted} 
+                onChange={handleCheckboxChange} 
+              />
+              <p>I Agree to{" "}
+                <a
+                  href="/term-of-service"
+                  target="_blank"
+                  className="color-primary"
+                >
+                  Term of service{" "}
+                </a>
+                and{" "}
+                <a
+                  href="/privacy-policy"
+                  target="_blank"
+                  className="color-primary"
+                >
+                  Privacy Policy
+                </a>
+              </p>
+              {formErrors.terms && <div style={{ color: 'red' }}>{formErrors.terms}</div>}
             </StyledCheckbox>
-            <GetStartedButton>Get Stated</GetStartedButton>
+            <GetStartedButton type="submit" disabled={isLoading}>
+              {isLoading ? 'Loading...' : 'Get Started'}
+            </GetStartedButton>
+            {/* {error && <div>Error: {error}</div>} */}
             <AlreadyHaveAccount>
-              Already have account?{" "}
+              Already have an account?{" "}
               <Link to="/auth/signin" className="color-primary">
                 Sign In
               </Link>{" "}

@@ -1,14 +1,13 @@
 import useAuthStore from "@/hooks/useAuthStore";
 import { Button } from "@/components/Button/Button";
-import Checkbox from "@/components/Form/Checkbox";
 import Label from "@/components/Form/Label";
 import { InputGroup, Input, InputWrapper } from "@/components/Form/v2/Input";
 import Text from "@/components/Typography/Text";
 import { Helmet } from "react-helmet-async";
-import { FaEnvelope, FaGlobe, FaLock, FaUser } from "react-icons/fa";
-import { Link,useNavigate  } from "react-router-dom";
+import { FaEnvelope, FaLock } from "react-icons/fa";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
-import { useState } from "react"; // Import useState for managing local state
+import { useState, useEffect } from "react";
 
 const Container = styled.div`
   max-width: 100%;
@@ -18,6 +17,35 @@ const Container = styled.div`
   @media screen and (max-width: 996px) {
     flex-direction: column;
     height: auto;
+  }
+`;
+
+const HeroWrapper = styled.div`
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(212.44deg, #7b40f2 0.86%, #783eed 86.32%);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  overflow: hidden;
+  position: relative;
+  z-index: 3;
+
+  img {
+    max-width: 642px;
+  }
+
+  ::before {
+    content: "";
+    z-index: -1;
+    position: absolute;
+    inset: 0;
+    background: url("/images/auth/float-rounded-r.svg") top right no-repeat,
+      url("/images/auth/float-rounded-l.svg") bottom left no-repeat;
+  }
+
+  @media screen and (max-width: 996px) {
+    display: none;
   }
 `;
 
@@ -71,58 +99,9 @@ const SignupForm = styled.form`
   }
 `;
 
-const HeroWrapper = styled.div`
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(212.44deg, #7b40f2 0.86%, #783eed 86.32%);
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-  overflow: hidden;
-  position: relative;
-  z-index: 3;
-
-  img {
-    max-width: 642px;
-  }
-
-  ::before {
-    content: "";
-    z-index: -1;
-    position: absolute;
-    inset: 0;
-    background: url("/images/auth/float-rounded-r.svg") top right no-repeat,
-      url("/images/auth/float-rounded-l.svg") bottom left no-repeat;
-  }
-
-  @media screen and (max-width: 996px) {
-    display: none;
-  }
-`;
-
 const StyledInputGroup = styled(InputGroup)`
   margin-top: 10px;
   margin-bottom: 20px;
-`;
-
-const StyledCheckbox = styled(Checkbox)`
-  margin-top: 16px;
-  width: max-content;
-
-  .custom-checkbox {
-    width: 15px;
-    height: 15px;
-    background: #f9fafe;
-    border: 1px solid #e3e6f3;
-    margin-right: 16px;
-  }
-
-  p {
-    letter-spacing: -0.03em;
-    font-size: 12px;
-    line-height: 18px;
-    color: #c1c7d4;
-  }
 `;
 
 const GetStartedButton = styled(Button)`
@@ -137,13 +116,6 @@ const GetStartedButton = styled(Button)`
   margin-top: 28px;
 `;
 
-const AlreadyHaveAccount = styled(Text)`
-  font-size: 12px;
-  margin-top: 16px;
-  line-height: 18px;
-  letter-spacing: -0.03em;
-  text-align: center;
-`;
 const FlashMessage = styled.div`
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
@@ -152,43 +124,35 @@ const FlashMessage = styled.div`
   margin-top: 10px;
   border-radius: 4px;
 `;
-const Signin = () => {
+
+const Verify = () => {
   const navigate = useNavigate();
-
-  const {
-    email,
-    password,
-    isLoading,
-    error,
-    setEmail,
-    setPassword,
-    login,
-  } = useAuthStore();
-
-  const [formErrors, setFormErrors] = useState({
-    email: '',
-    password: ''
-  });
-
+  const { setEmail, email, otp, isLoading, error, setOTP, verifyOTP } = useAuthStore();
+  const [formErrors, setFormErrors] = useState({ email: '', otp: '' });
   const [flashMessage, setFlashMessage] = useState('');
+  const [searchParams] = useSearchParams();
+
+
+  useEffect(() => {
+    const emailFromQuery = searchParams.get('email');
+    if (emailFromQuery) {
+      setEmail(emailFromQuery); // Set email from query parameter
+    }
+  }, [searchParams, setEmail]);
 
   const validateForm = () => {
     let valid = true;
-    const errors = {
-      email: '',
-      password: ''
-    };
+    const errors = { email: '', otp: '' };
 
- 
     if (!email) {
       errors.email = 'Email is required';
       valid = false;
     }
-    if (!password) {
-      errors.password = 'Password is required';
+    if (!otp) {
+      errors.otp = 'Otp is required';
       valid = false;
     }
-  
+
     setFormErrors(errors);
     return valid;
   };
@@ -196,16 +160,20 @@ const Signin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFlashMessage(''); // Set flash message on error
-     if (validateForm()) {
+    if (validateForm()) {
       try {
-        const response = await login();
-        if(response?.status === 200){
-          navigate('/');
-        }
+       const response = await verifyOTP();
+       if(response?.status === 200){
+        console.log('entered 200')
+         navigate('/auth/signin');
+       }
       } catch (error) {
-        console.log(error)
-        setFlashMessage('Invalid Email Or Password. Please try again.'); // Set flash message on error
-
+        console.error('error verify',error?.response);
+        if(error?.response?.status == 400){
+          setFlashMessage('Invalid OTP. Please try again!'); // Set flash message on error
+        }else{
+          setFlashMessage('Something went wrong during Verification. Please try again.'); // Set flash message on error
+        }
       }
     }
   };
@@ -217,12 +185,10 @@ const Signin = () => {
 
   };
 
-
-
   return (
     <>
       <Helmet>
-        <title>SignIn</title>
+        <title>Verify Registration</title>
       </Helmet>
       <Container>
         <SignupContainer>
@@ -230,7 +196,8 @@ const Signin = () => {
             <img src="/images/infinity-logo.png" alt="logo" />
           </AuthNav>
           {flashMessage && <FlashMessage>{flashMessage}</FlashMessage>} {/* Display flash message */}
-          <AuthTitle>Login</AuthTitle>
+
+          <AuthTitle>Verify Registration</AuthTitle>
           <SignupForm onSubmit={handleSubmit}>
             <InputWrapper>
               <Label className="normal-text">Email</Label>
@@ -239,39 +206,31 @@ const Signin = () => {
                 <Input 
                   placeholder="Your Email" 
                   type="email" 
+                  readOnly
                   value={email} 
                   name="email"
-                  onChange={handleInputChange(setEmail)} 
                 />
               </StyledInputGroup>
-              {formErrors.email && <div style={{ color: 'red', paddingBottom: '10px'  }}>{formErrors.email}</div>}
+              {formErrors.email && <div style={{ color: 'red', paddingBottom: '10px' }}>{formErrors.email}</div>}
             </InputWrapper>
-           
             <InputWrapper>
-              <Label className="normal-text">Password</Label>
+              <Label className="normal-text">OTP</Label>
               <StyledInputGroup>
                 <FaLock />
                 <Input 
-                  placeholder="Enter Password" 
-                  type="password" 
-                  value={password} 
-                  name="password"
-                  onChange={handleInputChange(setPassword)} 
+                  placeholder="Enter OTP" 
+                  type="text" 
+                  value={otp} 
+                  name="otp"
+                  onChange={handleInputChange(setOTP)} 
                 />
               </StyledInputGroup>
-              {formErrors.password && <div style={{ color: 'red', paddingBottom: '10px'  }}>{formErrors.password}</div>}
+              {formErrors.otp && <div style={{ color: 'red', paddingBottom: '10px' }}>{formErrors.otp}</div>}
             </InputWrapper>
-          
             <GetStartedButton type="submit" disabled={isLoading}>
-              {isLoading ? 'Loading...' : 'Login'}
+              {isLoading ? 'Loading...' : 'Verify'}
             </GetStartedButton>
             {/* {error && <div>Error: {error}</div>} */}
-            <AlreadyHaveAccount>
-              Don't have an account?{" "}
-              <Link to="/auth/signup" className="color-primary">
-                Sign Up
-              </Link>{" "}
-            </AlreadyHaveAccount>
           </SignupForm>
         </SignupContainer>
         <HeroWrapper>
@@ -282,4 +241,4 @@ const Signin = () => {
   );
 };
 
-export default Signin;
+export default Verify;

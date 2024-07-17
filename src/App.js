@@ -26,6 +26,7 @@ import PrivacyPolicyPage from "./pages/privacy-policy.page";
 import CreateTicketPage from "./pages/create-ticket.page";
 
 import SignupPage from "./pages/auth/signup";
+import VerifyPage from "./pages/auth/verify";
 import SigninPage from "./pages/auth/signin";
 
 import GettingStartedPage from "./pages/docs/getting-started/getting-started.page";
@@ -98,6 +99,7 @@ function App() {
         <Route path="/create-ticket" element={<CreateTicketPage />} />
 
         <Route path="/auth/signup" element={<SignupPage />} />
+        <Route path="/auth/verify" element={<VerifyPage />} />
         <Route path="/auth/signin" element={<SigninPage />} />
 
         <Route path="/docs" element={<DocsLayout />}>
