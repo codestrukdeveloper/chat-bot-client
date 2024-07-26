@@ -51,15 +51,16 @@ import socket from "@/socket/socket";
 export default function Message() {
   const navigate = useNavigate();
   const [currentParams, setCurrentParams] = useState("all");
+  const [currentMessage, setCurrentMessage] = useState("");
 
   const [messages, setMessages] = useState([]);
   const [openedUser, setOpenedUser] = useState();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const query = queryParams.get("socketId");
+  const socketIdQuery = queryParams.get("socketId");
   const servicesQuery = queryParams.get("services");
 
-  console.log("SocketId", query);
+  console.log("SocketId", socketIdQuery);
   const [currentFocusMessageId, setCurrentFocusMessageId] = useState(1);
 
   const [typing, setTyping] = useState(false); // when typing input message
@@ -126,6 +127,50 @@ export default function Message() {
     setTyping(true);
   };
 
+  const sendMessage = () => {
+    const message = inputMessageRef.current.textContent;
+    // console.log("Message", message);
+    if (message.trim()) {
+      const updatedMessages = messages.map((msg) =>
+        msg.socketId === socketIdQuery
+          ? {
+              ...msg,
+              messages: [
+                ...msg.messages,
+                {
+                  message,
+                  time: new Date(),
+                  sentBy: "system",
+                },
+              ],
+            }
+          : msg
+      );
+
+      socket.emit("message", {
+        message,
+        sentBy: "system",
+        to: socketIdQuery,
+      });
+      const currentUserWithMessage = messages?.find(
+        (userWithMessage) => userWithMessage.socketId === socketIdQuery
+      );
+      setOpenedUser({
+        from: servicesQuery,
+        messages: [
+          ...currentUserWithMessage.messages,
+          {
+            message,
+            time: new Date(),
+            sentBy: "system",
+          },
+        ],
+      });
+      setMessages(updatedMessages);
+      inputMessageRef.current.textContent = "";
+    }
+  };
+
   useEffect(() => {
     // Listen for messages
     socket.connect();
@@ -154,12 +199,12 @@ export default function Message() {
         );
         console.log("updatedMessages", updatedMessages);
 
-        const query = queryParams.get("socketId");
-        console.log(query, from, query === from);
+        const socketIdQuery = queryParams.get("socketId");
+        console.log(socketIdQuery, from, socketIdQuery === from);
 
-        if (query === from) {
+        if (socketIdQuery === from) {
           const currentUserWithMessage = messages?.find(
-            (userWithMessage) => userWithMessage.socketId === query
+            (userWithMessage) => userWithMessage.socketId === socketIdQuery
           );
           setOpenedUser({
             from: from,
@@ -381,7 +426,9 @@ export default function Message() {
                     <DetailMessage>
                       <TextMessageWrapper className="message-wrapper">
                         <Text size="xs" weight="semi-bold" className="name">
-                          {openedUser.socketId}
+                          {msg.sentBy === "system"
+                            ? "System"
+                            : openedUser.socketId}
                         </Text>
                         <Text className="time">
                           {convertToReadableFormat(msg.time)}
@@ -425,7 +472,7 @@ export default function Message() {
               <SendMessageWrapper>
                 <VoiceIcon />
                 <AttachmentIcon />
-                <ButtonSendMessage>
+                <ButtonSendMessage onClick={sendMessage}>
                   <SendIcon />
                 </ButtonSendMessage>
               </SendMessageWrapper>

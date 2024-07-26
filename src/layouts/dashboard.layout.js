@@ -136,7 +136,11 @@ function DashboardLayout({
   });
 
   useEffect(() => {
-    if (!servicesQuery) {
+    if (
+      !servicesQuery ||
+      servicesQuery === null ||
+      servicesQuery == undefined
+    ) {
       navigate("/services");
     }
   }, []);
