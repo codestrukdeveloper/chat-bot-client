@@ -324,7 +324,13 @@ export default function Message() {
                   </Text>
                 </TextWrapper>
                 <InfoMessageWrapper>
-                  <Text size="xs">1 Hour ago</Text>
+                  <Text size="xs">
+                    {timeAgo(
+                      userWithMessage.messages.at(
+                        userWithMessage.messages.length - 1
+                      ).time
+                    )}
+                  </Text>
                   <CountOfMessage className="count-message">15</CountOfMessage>
                 </InfoMessageWrapper>
               </Inbox>
@@ -493,3 +499,33 @@ const convertToReadableFormat = (isoString) => {
 
   return `${hours}:${minutes}:${seconds}`;
 };
+
+function timeAgo(isoDateString: string): string {
+  const now = new Date();
+  const date = new Date(isoDateString);
+
+  // Calculate the difference in milliseconds
+  const diffInMs = now.getTime() - date.getTime();
+
+  // Convert milliseconds to seconds
+  const diffInSec = Math.floor(diffInMs / 1000);
+
+  // Calculate the difference in different time units
+  const seconds = diffInSec % 60;
+  const minutes = Math.floor(diffInSec / 60) % 60;
+  const hours = Math.floor(diffInSec / 3600) % 24;
+  const days = Math.floor(diffInSec / 86400);
+
+  // Build the time ago string
+  if (days > 0) {
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  } else if (hours > 0) {
+    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  } else if (minutes > 0) {
+    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  } else if (seconds > 0) {
+    return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
+  } else {
+    return "just now";
+  }
+}
