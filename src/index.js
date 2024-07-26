@@ -9,14 +9,14 @@ import "./styles/styles.css";
 
 const rootNode = document.getElementById("root");
 ReactDOM.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <StyledComponentTheme>
-        <HelmetProvider>
-          <App />
-        </HelmetProvider>
-      </StyledComponentTheme>
-    </BrowserRouter>
-  </React.StrictMode>,
+  // <React.StrictMode>
+  <BrowserRouter>
+    <StyledComponentTheme>
+      <HelmetProvider>
+        <App />
+      </HelmetProvider>
+    </StyledComponentTheme>
+  </BrowserRouter>,
+  // </React.StrictMode> */}
   rootNode
 );

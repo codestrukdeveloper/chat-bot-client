@@ -1,11 +1,14 @@
+// App.js
 import { useEffect } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
+// Layouts
 import DashboardLayout from "./layouts/dashboard.layout";
 import MainLayout from "./layouts/main.layout";
 import DocsLayout from "./layouts/docs.layout";
 
+// Pages
 import MessagesPage from "./pages/dashboard/messages/messages.page";
 import DashboardPage from "./pages/dashboard/dashboard/dashboard.page";
 import CampaignPage from "./pages/dashboard/campaign/campaign.page";
@@ -19,22 +22,23 @@ import SettingPlugins from "./pages/dashboard/plugin/settings/settings.page";
 import DetailPluginPage from "./pages/dashboard/plugin/detail/detail.page";
 import NotesPage from "./pages/dashboard/notes/notes.page";
 import UsersPage from "./pages/dashboard/users/users.page";
-
 import LandingPage from "./pages/landing.page";
 import Features from "./pages/features.page";
 import PrivacyPolicyPage from "./pages/privacy-policy.page";
 import CreateTicketPage from "./pages/create-ticket.page";
-
 import SignupPage from "./pages/auth/signup";
 import VerifyPage from "./pages/auth/verify";
 import SigninPage from "./pages/auth/signin";
-
 import GettingStartedPage from "./pages/docs/getting-started/getting-started.page";
 import HomepageDocs from "./pages/docs/home/home.page";
-
 import ComponentDraggable from "./pages/component-draggable";
 import NotFound from "./pages/404.page";
 import ArticleBySlug from "./pages/docs/getting-started/[article]";
+import ServicesPage from "./pages/dashboard/services";
+import CreateServicePage from "./pages/dashboard/new-service";
+import ProtectedRoute from "./protectedRotues";
+
+// ProtectedRoute Component
 
 function App() {
   const { pathname } = useLocation();
@@ -64,37 +68,41 @@ function App() {
           <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
         </Route>
 
-        {/* Dashboard Route */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route
+          path="/dashboard"
+          element={<ProtectedRoute element={DashboardLayout} />}
+        >
           <Route index element={<DashboardPage />} />
-
           <Route path="messages">
             <Route index element={<MessagesPage />} />
             <Route path=":id" element={<MessagesPage />} />
           </Route>
-
           <Route path="visitors" element={<VisitorsPage />} />
           <Route path="contacts" element={<ContactPage />} />
           <Route path="campaign" element={<CampaignPage />} />
           <Route path="helpdesk" element={<HelpdeskPage />} />
           <Route path="analytics" element={<AnalitycPage />} />
-
           <Route path="notes">
             <Route index element={<NotesPage />} />
             <Route path=":noteId" element={<NotesPage />} />
           </Route>
-
           <Route path="plugins">
             <Route index element={<PluginsPage />} />
             <Route path=":name" element={<DetailPluginPage />} />
             <Route path=":name/setting" element={<SettingPlugins />} />
           </Route>
-
           <Route path="users" element={<UsersPage />} />
-
-          <Route path="settings" element={<SettingsPage />}></Route>
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
-        {/* End - Dashboard Route */}
+
+        <Route
+          path="/dashboard/new-service"
+          element={<ProtectedRoute element={CreateServicePage} />}
+        />
+        <Route
+          path="/services"
+          element={<ProtectedRoute element={ServicesPage} />}
+        />
 
         <Route path="/create-ticket" element={<CreateTicketPage />} />
 

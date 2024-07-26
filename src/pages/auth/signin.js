@@ -6,7 +6,7 @@ import { InputGroup, Input, InputWrapper } from "@/components/Form/v2/Input";
 import Text from "@/components/Typography/Text";
 import { Helmet } from "react-helmet-async";
 import { FaEnvelope, FaGlobe, FaLock, FaUser } from "react-icons/fa";
-import { Link,useNavigate  } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useState } from "react"; // Import useState for managing local state
 
@@ -155,69 +155,57 @@ const FlashMessage = styled.div`
 const Signin = () => {
   const navigate = useNavigate();
 
-  const {
-    email,
-    password,
-    isLoading,
-    error,
-    setEmail,
-    setPassword,
-    login,
-  } = useAuthStore();
+  const { email, password, isLoading, error, setEmail, setPassword, login } =
+    useAuthStore();
 
   const [formErrors, setFormErrors] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
 
-  const [flashMessage, setFlashMessage] = useState('');
+  const [flashMessage, setFlashMessage] = useState("");
 
   const validateForm = () => {
     let valid = true;
     const errors = {
-      email: '',
-      password: ''
+      email: "",
+      password: "",
     };
 
- 
     if (!email) {
-      errors.email = 'Email is required';
+      errors.email = "Email is required";
       valid = false;
     }
     if (!password) {
-      errors.password = 'Password is required';
+      errors.password = "Password is required";
       valid = false;
     }
-  
+
     setFormErrors(errors);
     return valid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFlashMessage(''); // Set flash message on error
-     if (validateForm()) {
+    setFlashMessage(""); // Set flash message on error
+    if (validateForm()) {
       try {
         const response = await login();
-        if(response?.status === 200){
-          navigate('/');
+        if (response?.status === 200) {
+          navigate("/services");
         }
       } catch (error) {
-        console.log(error)
-        setFlashMessage('Invalid Email Or Password. Please try again.'); // Set flash message on error
-
+        console.log(error);
+        setFlashMessage("Invalid Email Or Password. Please try again."); // Set flash message on error
       }
     }
   };
 
   const handleInputChange = (setter) => (e) => {
     setter(e.target.value);
-    setFormErrors((prev) => ({ ...prev, [e.target.name]: '' })); // Clear error on change
-    setFlashMessage(''); // Set flash message on error
-
+    setFormErrors((prev) => ({ ...prev, [e.target.name]: "" })); // Clear error on change
+    setFlashMessage(""); // Set flash message on error
   };
-
-
 
   return (
     <>
@@ -229,41 +217,50 @@ const Signin = () => {
           <AuthNav>
             <img src="/images/infinity-logo.png" alt="logo" />
           </AuthNav>
-          {flashMessage && <FlashMessage>{flashMessage}</FlashMessage>} {/* Display flash message */}
+          {flashMessage && <FlashMessage>{flashMessage}</FlashMessage>}{" "}
+          {/* Display flash message */}
           <AuthTitle>Login</AuthTitle>
           <SignupForm onSubmit={handleSubmit}>
             <InputWrapper>
               <Label className="normal-text">Email</Label>
               <StyledInputGroup>
                 <FaEnvelope />
-                <Input 
-                  placeholder="Your Email" 
-                  type="email" 
-                  value={email} 
+                <Input
+                  placeholder="Your Email"
+                  type="email"
+                  value={email}
                   name="email"
-                  onChange={handleInputChange(setEmail)} 
+                  onChange={handleInputChange(setEmail)}
                 />
               </StyledInputGroup>
-              {formErrors.email && <div style={{ color: 'red', paddingBottom: '10px'  }}>{formErrors.email}</div>}
+              {formErrors.email && (
+                <div style={{ color: "red", paddingBottom: "10px" }}>
+                  {formErrors.email}
+                </div>
+              )}
             </InputWrapper>
-           
+
             <InputWrapper>
               <Label className="normal-text">Password</Label>
               <StyledInputGroup>
                 <FaLock />
-                <Input 
-                  placeholder="Enter Password" 
-                  type="password" 
-                  value={password} 
+                <Input
+                  placeholder="Enter Password"
+                  type="password"
+                  value={password}
                   name="password"
-                  onChange={handleInputChange(setPassword)} 
+                  onChange={handleInputChange(setPassword)}
                 />
               </StyledInputGroup>
-              {formErrors.password && <div style={{ color: 'red', paddingBottom: '10px'  }}>{formErrors.password}</div>}
+              {formErrors.password && (
+                <div style={{ color: "red", paddingBottom: "10px" }}>
+                  {formErrors.password}
+                </div>
+              )}
             </InputWrapper>
-          
+
             <GetStartedButton type="submit" disabled={isLoading}>
-              {isLoading ? 'Loading...' : 'Login'}
+              {isLoading ? "Loading..." : "Login"}
             </GetStartedButton>
             {/* {error && <div>Error: {error}</div>} */}
             <AlreadyHaveAccount>

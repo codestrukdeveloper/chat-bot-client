@@ -1,10 +1,11 @@
-import useAuthStore from "@/hooks/useAuthStore";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { Button } from "../Button/Button";
 import Hamburger from "../Hamburger/Hamburger";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuthProfile } from "@/hooks/useAuthProfile";
+import UserProfile from "./UserProfile";
 
 const Nav = styled.nav`
   position: sticky;
@@ -181,12 +182,6 @@ const StyledHamburger = styled(Hamburger)`
 `;
 
 const Navbar = () => {
-  const {
-    isLoading,
-    error,
-    getProfile
-  } = useAuthStore();
-
   const [openNav, setOpenNav] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const navigate = useNavigate();
@@ -194,19 +189,7 @@ const Navbar = () => {
   const handleClickHamburger = () => {
     setOpenNav(!openNav);
   };
-  useEffect(() => {
-    const checkAuthentication = async () => {
-      try {
-        await getProfile(); // Fetch user profile to check if logged in
-        setShowProfile(true);
-      } catch (error) {
-        console.log(' error fetchign profile data ', error)
 
-      }
-    };
-
-    checkAuthentication();
-  }, [getProfile]);
   return (
     <Nav>
       <NavLogo to="/" />
@@ -226,31 +209,11 @@ const Navbar = () => {
             Help
           </Link>
         </NavList>
-        {showProfile ? (
-          <NavList className="profile">
-            <Link to="/profile" onClick={() => setOpenNav(false)}>
-              Profile
-            </Link>
-          </NavList>
-        ) : (
-          <>
-            <NavList className="signin">
-              <Link to="/auth/signin" onClick={() => setOpenNav(false)}>
-                Sign In
-              </Link>
-            </NavList>
-            <NavList className="signup">
-              <Link to="/auth/signup" onClick={() => setOpenNav(false)}>
-                Create Account
-              </Link>
-            </NavList>
-          </>
-        )}
       </NavLists>
       <NavButtons>
-        <Button onClick={() => navigate("/auth/signin")}>Sign In</Button>
-        <Button onClick={() => navigate("/auth/signup")}>Create Account</Button>
+        <UserProfile />
       </NavButtons>
+
       <StyledHamburger
         className={openNav && "active"}
         onClick={handleClickHamburger}

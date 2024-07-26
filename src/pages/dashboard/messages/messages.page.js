@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Picker from "emoji-picker-react";
 import { FaRegSmile } from "react-icons/fa";
 
@@ -46,10 +46,20 @@ import {
   InputMessage,
   SendMessageWrapper,
 } from "./messages.style";
+import socket from "@/socket/socket";
 
 export default function Message() {
   const navigate = useNavigate();
   const [currentParams, setCurrentParams] = useState("all");
+
+  const [messages, setMessages] = useState([]);
+  const [openedUser, setOpenedUser] = useState();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const query = queryParams.get("socketId");
+  const servicesQuery = queryParams.get("services");
+
+  console.log("SocketId", query);
   const [currentFocusMessageId, setCurrentFocusMessageId] = useState(1);
 
   const [typing, setTyping] = useState(false); // when typing input message
@@ -79,9 +89,16 @@ export default function Message() {
   const handleChangeFocusMessageId = (id) => {
     setCurrentFocusMessageId(id);
 
+    navigate(`?services=${servicesQuery}&socketId=${id}`);
+    const currentUserWithMessage = messages?.find(
+      (userWithMessage) => userWithMessage.socketId === id
+    );
+    setOpenedUser(currentUserWithMessage);
+    console.log("opened User", currentUserWithMessage);
     if (currentWidth <= 996) {
       setClickedInbox(true);
-      navigate(`${id}`);
+      // navigate(`${id}`);
+      navigate(`?socketId=${id}`);
     }
   };
 
@@ -109,6 +126,79 @@ export default function Message() {
     setTyping(true);
   };
 
+  useEffect(() => {
+    // Listen for messages
+    socket.connect();
+    socket.on("message", (data) => {
+      const { from, message, sentBy, time } = data;
+      console.log("MesageRecie", data);
+      const existingUser = messages?.find((msg) => msg.socketId === from);
+      console.log("Found", existingUser);
+
+      if (existingUser) {
+        // Update the existing user's message
+        const updatedMessages = messages.map((msg) =>
+          msg.socketId === from
+            ? {
+                ...msg,
+                messages: [
+                  ...msg.messages,
+                  {
+                    message: message,
+                    time,
+                    sentBy,
+                  },
+                ],
+              }
+            : msg
+        );
+        console.log("updatedMessages", updatedMessages);
+
+        const query = queryParams.get("socketId");
+        console.log(query, from, query === from);
+
+        if (query === from) {
+          const currentUserWithMessage = messages?.find(
+            (userWithMessage) => userWithMessage.socketId === query
+          );
+          setOpenedUser({
+            from: from,
+            messages: [
+              ...currentUserWithMessage.messages,
+              {
+                message: message,
+                time,
+                sentBy,
+              },
+            ],
+          });
+        }
+        setMessages(updatedMessages);
+      } else {
+        // Add new user with the received message
+        const newUser = {
+          socketId: from,
+          messages: [
+            {
+              message: message,
+              time,
+              sentBy,
+            },
+          ],
+        };
+        setMessages([...messages, newUser]);
+      }
+
+      console.log("Received message:", messages);
+    });
+
+    // Clean up on unmount
+    return () => {
+      socket.off("message");
+    };
+  }, [messages]);
+
+  console.log("messages", messages);
   return (
     <MessagesContainer>
       {(!params.id || currentWidth >= 996) && (
@@ -160,34 +250,41 @@ export default function Message() {
             </TextCategoryWrapper>
           </InboxCategoryWrapper>
           <InboxesWrapper>
-            <Inbox
-              className={currentFocusMessageId === 1 ? "active" : ""}
-              onClick={() => handleChangeFocusMessageId(1)}
-            >
-              <img
-                src="/images/teressa.png"
-                alt="avatar"
-                className="avatar-message"
-              />
-              <TextWrapper>
-                <Text
-                  weight="semi-bold"
-                  size="sm"
-                  className="name-from-message"
-                >
-                  Teressa Trial
-                </Text>
-                <Text size="sm" className="piece-message">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Molestiae, delectus.
-                </Text>
-              </TextWrapper>
-              <InfoMessageWrapper>
-                <Text size="xs">1 Hour ago</Text>
-                <CountOfMessage className="count-message">15</CountOfMessage>
-              </InfoMessageWrapper>
-            </Inbox>
-            <Inbox
+            {messages?.map((userWithMessage, index) => (
+              <Inbox
+                className={currentFocusMessageId === 1 ? "active" : ""}
+                onClick={() =>
+                  handleChangeFocusMessageId(userWithMessage.socketId)
+                }
+              >
+                <img
+                  src="/images/teressa.png"
+                  alt="avatar"
+                  className="avatar-message"
+                />
+                <TextWrapper>
+                  <Text
+                    weight="semi-bold"
+                    size="sm"
+                    className="name-from-message"
+                  >
+                    {userWithMessage.socketId}
+                  </Text>
+                  <Text size="sm" className="piece-message">
+                    {
+                      userWithMessage.messages.at(
+                        userWithMessage.messages.length - 1
+                      ).message
+                    }
+                  </Text>
+                </TextWrapper>
+                <InfoMessageWrapper>
+                  <Text size="xs">1 Hour ago</Text>
+                  <CountOfMessage className="count-message">15</CountOfMessage>
+                </InfoMessageWrapper>
+              </Inbox>
+            ))}
+            {/* <Inbox
               className={currentFocusMessageId === 2 ? "active" : ""}
               onClick={() => handleChangeFocusMessageId(2)}
             >
@@ -213,271 +310,139 @@ export default function Message() {
                 <Text size="xs">1 Hour ago</Text>
                 <CountOfMessage className="count-message">15</CountOfMessage>
               </InfoMessageWrapper>
-            </Inbox>
-            <Inbox
-              className={currentFocusMessageId === 3 ? "active" : ""}
-              onClick={() => handleChangeFocusMessageId(3)}
-            >
-              <img
-                src="/images/kathryn.png"
-                alt="avatar"
-                className="avatar-message"
-              />
-              <TextWrapper>
-                <Text
-                  weight="semi-bold"
-                  size="sm"
-                  className="name-from-message"
-                >
-                  Kathryn Murphy
-                </Text>
-                <Text size="sm" className="piece-message">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Molestiae, delectus.
-                </Text>
-              </TextWrapper>
-              <InfoMessageWrapper>
-                <Text size="xs">1 Hour ago</Text>
-                <CountOfMessage className="count-message">15</CountOfMessage>
-              </InfoMessageWrapper>
-            </Inbox>
-            <Inbox
-              className={currentFocusMessageId === 4 ? "active" : ""}
-              onClick={() => handleChangeFocusMessageId(4)}
-            >
-              <img
-                src="/images/henry.png"
-                alt="avatar"
-                className="avatar-message"
-              />
-              <TextWrapper>
-                <Text
-                  weight="semi-bold"
-                  size="sm"
-                  className="name-from-message"
-                >
-                  Courtney Henry
-                </Text>
-                <Text size="sm" className="piece-message">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Molestiae, delectus.
-                </Text>
-              </TextWrapper>
-              <InfoMessageWrapper>
-                <Text size="xs">1 Hour ago</Text>
-                <CountOfMessage className="count-message">15</CountOfMessage>
-              </InfoMessageWrapper>
-            </Inbox>
-            <Inbox
-              className={currentFocusMessageId === 5 ? "active" : ""}
-              onClick={() => handleChangeFocusMessageId(5)}
-            >
-              <img
-                src="/images/teressa.png"
-                alt="avatar"
-                className="avatar-message"
-              />
-              <TextWrapper>
-                <Text
-                  weight="semi-bold"
-                  size="sm"
-                  className="name-from-message"
-                >
-                  Theresa Webb
-                </Text>
-                <Text size="sm" className="piece-message">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Molestiae, delectus.
-                </Text>
-              </TextWrapper>
-              <InfoMessageWrapper>
-                <Text size="xs">1 Hour ago</Text>
-                <CountOfMessage className="count-message">15</CountOfMessage>
-              </InfoMessageWrapper>
-            </Inbox>
-            <Inbox
-              className={currentFocusMessageId === 6 ? "active" : ""}
-              onClick={() => handleChangeFocusMessageId(6)}
-            >
-              <img
-                src="/images/teressa.png"
-                alt="avatar"
-                className="avatar-message"
-              />
-              <TextWrapper>
-                <Text
-                  weight="semi-bold"
-                  size="sm"
-                  className="name-from-message"
-                >
-                  Wade Warren
-                </Text>
-                <Text size="sm" className="piece-message">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Molestiae, delectus.
-                </Text>
-              </TextWrapper>
-              <InfoMessageWrapper>
-                <Text size="xs">1 Hour ago</Text>
-                <CountOfMessage className="count-message">15</CountOfMessage>
-              </InfoMessageWrapper>
-            </Inbox>
-            <Inbox
-              className={currentFocusMessageId === 7 ? "active" : ""}
-              onClick={() => handleChangeFocusMessageId(7)}
-            >
-              <img
-                src="/images/teressa.png"
-                alt="avatar"
-                className="avatar-message"
-              />
-              <TextWrapper>
-                <Text
-                  weight="semi-bold"
-                  size="sm"
-                  className="name-from-message"
-                >
-                  Wade Warren
-                </Text>
-                <Text size="sm" className="piece-message">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Molestiae, delectus.
-                </Text>
-              </TextWrapper>
-              <InfoMessageWrapper>
-                <Text size="xs">1 Hour ago</Text>
-                <CountOfMessage className="count-message">15</CountOfMessage>
-              </InfoMessageWrapper>
-            </Inbox>
+            </Inbox> */}
           </InboxesWrapper>
         </InboxContainer>
       )}
       {((currentWidth <= 996 && clickedInbox && params.id) ||
-        currentWidth >= 996) && (
-        <InboxMessagesContainer>
-          <BarMessageWrapper>
-            <ProfileBarWrapper>
-              <img src="/images/teressa.png" alt="avatar" className="avatar" />
-              <Profile status="online">
-                <Text weight="semi-bold">Teressa Trial</Text>
-                <Text size="xs" className="status">
-                  Online
-                </Text>
-              </Profile>
-            </ProfileBarWrapper>
-            <ToolMessageWrapper>
-              <Tool>
-                <SilentIcon />
-                <CameraIcon />
-                <CallIcon />
-                <MenuIcon />
-              </Tool>
-              <MenuWrapper>
-                <SearchIcon />
-                <MenuDot>
-                  <Dot />
-                  <Dot />
-                  <Dot />
-                </MenuDot>
-              </MenuWrapper>
-            </ToolMessageWrapper>
-          </BarMessageWrapper>
-
-          <Messages>
-            <MessageWrapper>
-              <img src="/images/teressa.png" alt="avatar" className="avatar" />
-              <DetailMessage>
-                <TextMessageWrapper className="message-wrapper">
-                  <Text size="xs" weight="semi-bold">
-                    Teressa Trial
+        currentWidth >= 996) &&
+        openedUser && (
+          <InboxMessagesContainer>
+            <BarMessageWrapper>
+              <ProfileBarWrapper>
+                <img
+                  src="/images/teressa.png"
+                  alt="avatar"
+                  className="avatar"
+                />
+                <Profile status="online">
+                  <Text weight="semi-bold">{openedUser.socketId}</Text>
+                  <Text size="xs" className="status">
+                    Online
                   </Text>
-                  <Text className="time">3:20 PM</Text>
-                </TextMessageWrapper>
-                <MessageText className="message-text">
-                  Lorem ispum dolor sit amet minim
-                </MessageText>
-              </DetailMessage>
-            </MessageWrapper>
+                </Profile>
+              </ProfileBarWrapper>
+              <ToolMessageWrapper>
+                <Tool>
+                  <SilentIcon />
+                  <CameraIcon />
+                  <CallIcon />
+                  <MenuIcon />
+                </Tool>
+                <MenuWrapper>
+                  <SearchIcon />
+                  <MenuDot>
+                    <Dot />
+                    <Dot />
+                    <Dot />
+                  </MenuDot>
+                </MenuWrapper>
+              </ToolMessageWrapper>
+            </BarMessageWrapper>
 
-            <MessageWrapper mine>
-              <img src="/images/teressa.png" alt="avatar" className="avatar" />
-              <DetailMessage>
-                <TextMessageWrapper className="message-wrapper">
-                  <Text size="xs" weight="semi-bold" className="name">
-                    Sarah Scofild
-                  </Text>
-                  <Text className="time">3:20 PM</Text>
-                </TextMessageWrapper>
-                <MessageText className="message-text">
-                  Lorem ispum dolor sit amet minim
-                </MessageText>
-              </DetailMessage>
-            </MessageWrapper>
+            <Messages>
+              {openedUser?.messages &&
+                openedUser?.messages?.map((msg) => (
+                  // <MessageWrapper mine>
+                  //   <img
+                  //     src="/images/teressa.png"
+                  //     alt="avatar"
+                  //     className="avatar"
+                  //   />
+                  //   <DetailMessage>
+                  //     <TextMessageWrapper className="message-wrapper">
+                  //       <Text size="xs" weight="semi-bold" className="name">
+                  //         Admin
+                  //       </Text>
+                  //       <Text className="time">3:20 PM</Text>
+                  //     </TextMessageWrapper>
+                  //     <MessageText className="message-text">
+                  //       Lorem ispum dolor sit amet minim
+                  //     </MessageText>
+                  //   </DetailMessage>
+                  // </MessageWrapper>
 
-            <MessageWrapper mine>
-              <img src="/images/teressa.png" alt="avatar" className="avatar" />
-              <DetailMessage>
-                <TextMessageWrapper className="message-wrapper">
-                  <Text size="xs" weight="semi-bold" className="name">
-                    Sarah Scofild
-                  </Text>
-                  <Text className="time">3:20 PM</Text>
-                </TextMessageWrapper>
-                <MessageText className="message-text">
-                  Lorem ispum dolor sit amet minim
-                </MessageText>
-              </DetailMessage>
-            </MessageWrapper>
+                  <MessageWrapper mine={msg.sentBy === "system"}>
+                    <img
+                      src="/images/teressa.png"
+                      alt="avatar"
+                      className="avatar"
+                    />
+                    <DetailMessage>
+                      <TextMessageWrapper className="message-wrapper">
+                        <Text size="xs" weight="semi-bold" className="name">
+                          {openedUser.socketId}
+                        </Text>
+                        <Text className="time">
+                          {convertToReadableFormat(msg.time)}
+                        </Text>
+                      </TextMessageWrapper>
+                      <MessageText className="message-text">
+                        {/* <img src="/images/img-example-message.png" alt="img" /> */}
+                        {msg.message}
+                      </MessageText>
+                    </DetailMessage>
+                  </MessageWrapper>
+                ))}
+            </Messages>
 
-            <MessageWrapper>
-              <img src="/images/teressa.png" alt="avatar" className="avatar" />
-              <DetailMessage>
-                <TextMessageWrapper className="message-wrapper">
-                  <Text size="xs" weight="semi-bold" className="name">
-                    Sarah Scofild
-                  </Text>
-                  <Text className="time">3:20 PM</Text>
-                </TextMessageWrapper>
-                <MessageText className="message-text">
-                  <img src="/images/img-example-message.png" alt="img" />
-                </MessageText>
-              </DetailMessage>
-            </MessageWrapper>
-          </Messages>
-
-          <InputMessageWrapper>
-            {showEmoji && (
-              <EmojiWrapper
+            <InputMessageWrapper>
+              {showEmoji && (
+                <EmojiWrapper
+                  onMouseMove={() => setShowEmoji(true)}
+                  onMouseLeave={() => setShowEmoji(false)}
+                >
+                  <Picker
+                    disableSkinTonePicker
+                    onEmojiClick={handleClickEmoji}
+                  />
+                </EmojiWrapper>
+              )}
+              <FaRegSmile
+                className="emoji-icon"
+                color="#AFAEB1"
                 onMouseMove={() => setShowEmoji(true)}
-                onMouseLeave={() => setShowEmoji(false)}
-              >
-                <Picker disableSkinTonePicker onEmojiClick={handleClickEmoji} />
-              </EmojiWrapper>
-            )}
-            <FaRegSmile
-              className="emoji-icon"
-              color="#AFAEB1"
-              onMouseMove={() => setShowEmoji(true)}
-            />
-            <InputMessage
-              typing={typing}
-              contentEditable
-              placeholder="Your messages"
-              data-max-length={250}
-              onKeyDown={handleMaxLengthInputMessage}
-              onKeyUp={handleKeyUpInput}
-              ref={inputMessageRef}
-            />
-            <SendMessageWrapper>
-              <VoiceIcon />
-              <AttachmentIcon />
-              <ButtonSendMessage>
-                <SendIcon />
-              </ButtonSendMessage>
-            </SendMessageWrapper>
-          </InputMessageWrapper>
-        </InboxMessagesContainer>
-      )}
+              />
+              <InputMessage
+                typing={typing}
+                contentEditable
+                placeholder="Your messages"
+                data-max-length={250}
+                onKeyDown={handleMaxLengthInputMessage}
+                onKeyUp={handleKeyUpInput}
+                ref={inputMessageRef}
+              />
+              <SendMessageWrapper>
+                <VoiceIcon />
+                <AttachmentIcon />
+                <ButtonSendMessage>
+                  <SendIcon />
+                </ButtonSendMessage>
+              </SendMessageWrapper>
+            </InputMessageWrapper>
+          </InboxMessagesContainer>
+        )}
     </MessagesContainer>
   );
 }
+
+const convertToReadableFormat = (isoString) => {
+  const date = new Date(isoString);
+
+  const day = ("0" + date.getDate()).slice(-2);
+  const hours = ("0" + date.getHours()).slice(-2);
+  const minutes = ("0" + date.getMinutes()).slice(-2);
+  const seconds = ("0" + date.getSeconds()).slice(-2);
+
+  return `${hours}:${minutes}:${seconds}`;
+};

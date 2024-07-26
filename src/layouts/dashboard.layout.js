@@ -1,7 +1,7 @@
-import { Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import withInteractiveDashboard from "@/hoc/withInteractiveDashboard";
 import { H1 } from "@components/Typography/Heading";
@@ -120,7 +120,11 @@ function DashboardLayout({
   showSearchBarMobile,
   myRef: { navbarRef, searchInputRef },
 }) {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const navigate = useNavigate();
+
+  const queryParams = new URLSearchParams(search);
+  const servicesQuery = queryParams.get("services");
   const handleClickMenu = () => {
     setShowMenu(false);
   };
@@ -130,6 +134,12 @@ function DashboardLayout({
   const [source, target] = useSingleton({
     overrides: ["placement"],
   });
+
+  useEffect(() => {
+    if (!servicesQuery) {
+      navigate("/services");
+    }
+  }, []);
 
   return (
     <>
@@ -149,7 +159,9 @@ function DashboardLayout({
           />
         )}
         <Sidebar showMenu={showMenu}>
-          <img src="/images/logo.png" alt="logo" />
+          <Link to="/services">
+            <img src="/images/logo.png" alt="logo" />
+          </Link>
           <SidebarHeaderMobile>
             <img
               src="/images/infinity-logo.png"
@@ -170,7 +182,7 @@ function DashboardLayout({
           <Menu>
             <StyledLink
               className={`${pathname === "/dashboard" && "isActive"}`}
-              to="/dashboard"
+              to={`/dashboard?services=${servicesQuery}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -187,7 +199,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/messages" && "isActive"}`}
-              to="/dashboard/messages"
+              to={`/dashboard/messages?services=${servicesQuery}`}
               onClick={handleClickMenu}
             >
               <StyledTippy content="Chat" singleton={target} placement="right">
@@ -200,7 +212,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/visitors" && "isActive"}`}
-              to="/dashboard/visitors"
+              to={`/dashboard/visitors?services=${servicesQuery}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -217,7 +229,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/contacts" && "isActive"}`}
-              to="/dashboard/contacts"
+              to={`/dashboard/contacts?services=${servicesQuery}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -234,7 +246,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/campaign" && "isActive"}`}
-              to="/dashboard/campaign"
+              to={`/dashboard/campaign?services=${servicesQuery}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -255,7 +267,7 @@ function DashboardLayout({
                   pathname.includes("helpdesk")) &&
                 "isActive"
               }`}
-              to="/dashboard/helpdesk"
+              to={`/dashboard/helpdesk?services=${servicesQuery}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -272,7 +284,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/analytics" && "isActive"}`}
-              to="/dashboard/analytics"
+              to={`/dashboard/analytics?services=${servicesQuery}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -293,7 +305,7 @@ function DashboardLayout({
                   pathname.includes("plugins")) &&
                 "isActive"
               }`}
-              to="/dashboard/plugins"
+              to={`/dashboard/plugins?services=${servicesQuery}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -310,7 +322,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/settings" && "isActive"}`}
-              to="/dashboard/settings"
+              to={`/dashboard/settings?services=${servicesQuery}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
