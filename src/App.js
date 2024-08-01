@@ -69,7 +69,7 @@ function App() {
         </Route>
 
         <Route
-          path="/dashboard"
+          path="/dashboard/"
           element={<ProtectedRoute element={DashboardLayout} />}
         >
           <Route index element={<DashboardPage />} />

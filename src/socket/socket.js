@@ -14,6 +14,7 @@ const getUrlParameter = (name) => {
 // Get secretKey and isAdmin from URL parameters
 const secretKey = getUrlParameter("services");
 
+console.log("Services", secretKey);
 // Get authToken from cookies
 const authToken = Cookies.get("auth-token");
 

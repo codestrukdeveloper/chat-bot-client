@@ -125,6 +125,8 @@ function DashboardLayout({
 
   const queryParams = new URLSearchParams(search);
   const servicesQuery = queryParams.get("services");
+  const serviceId = queryParams.get("id");
+
   const handleClickMenu = () => {
     setShowMenu(false);
   };
@@ -139,7 +141,9 @@ function DashboardLayout({
     if (
       !servicesQuery ||
       servicesQuery === null ||
-      servicesQuery == undefined
+      servicesQuery === undefined ||
+      serviceId === null ||
+      undefined
     ) {
       navigate("/services");
     }
@@ -186,7 +190,7 @@ function DashboardLayout({
           <Menu>
             <StyledLink
               className={`${pathname === "/dashboard" && "isActive"}`}
-              to={`/dashboard?services=${servicesQuery}`}
+              to={`/dashboard?services=${servicesQuery}&&id=${serviceId}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -203,7 +207,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/messages" && "isActive"}`}
-              to={`/dashboard/messages?services=${servicesQuery}`}
+              to={`/dashboard/messages?services=${servicesQuery}&&id=${serviceId}`}
               onClick={handleClickMenu}
             >
               <StyledTippy content="Chat" singleton={target} placement="right">
@@ -216,7 +220,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/visitors" && "isActive"}`}
-              to={`/dashboard/visitors?services=${servicesQuery}`}
+              to={`/dashboard/visitors?services=${servicesQuery}&&id=${serviceId}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -233,7 +237,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/contacts" && "isActive"}`}
-              to={`/dashboard/contacts?services=${servicesQuery}`}
+              to={`/dashboard/contacts?services=${servicesQuery}&&id=${serviceId}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -250,7 +254,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/campaign" && "isActive"}`}
-              to={`/dashboard/campaign?services=${servicesQuery}`}
+              to={`/dashboard/campaign?services=${servicesQuery}&&id=${serviceId}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -271,7 +275,7 @@ function DashboardLayout({
                   pathname.includes("helpdesk")) &&
                 "isActive"
               }`}
-              to={`/dashboard/helpdesk?services=${servicesQuery}`}
+              to={`/dashboard/helpdesk?services=${servicesQuery}&&id=${serviceId}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -288,7 +292,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/analytics" && "isActive"}`}
-              to={`/dashboard/analytics?services=${servicesQuery}`}
+              to={`/dashboard/analytics?services=${servicesQuery}&&id=${serviceId}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -309,7 +313,7 @@ function DashboardLayout({
                   pathname.includes("plugins")) &&
                 "isActive"
               }`}
-              to={`/dashboard/plugins?services=${servicesQuery}`}
+              to={`/dashboard/plugins?services=${servicesQuery}&&id=${serviceId}`}
               onClick={handleClickMenu}
             >
               <StyledTippy
@@ -326,7 +330,7 @@ function DashboardLayout({
 
             <StyledLink
               className={`${pathname === "/dashboard/settings" && "isActive"}`}
-              to={`/dashboard/settings?services=${servicesQuery}`}
+              to={`/dashboard/settings?services=${servicesQuery}&&id=${serviceId}`}
               onClick={handleClickMenu}
             >
               <StyledTippy

@@ -46,7 +46,7 @@ const ServiceCard = ({ service }) => {
           {service.status}
         </span>
         <Link
-          to={`/dashboard?services=${service.apiKey}`}
+          to={`/dashboard?services=${service.apiKey}&&id=${service.id}`}
           className="text-blue-600 hover:underline"
         >
           View Details
